@@ -18,3 +18,9 @@ The application will select a new image at random every N seconds for you.
 1. Resizing the window is still not handled. 
 2. Misplaced text when no folder is selected.
 
+## Dependencies
+1. PyQt5
+2. qdarkstyle
+3. python OpenCV2
+
+
