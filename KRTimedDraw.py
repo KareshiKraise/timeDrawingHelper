@@ -16,10 +16,12 @@ from PyQt5.QtGui import *
 import os
 import random
 import cv2
-
+import qdarkstyle
 # supported file extensions
 # [".jpg", ".jpeg", ".png", ".gif"]
 
+os.environ['QT_API'] = 'pyqt5'
+max_res = (640,640)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -75,7 +77,7 @@ class Ui_MainWindow(object):
         self.showTimeLabel.setObjectName("showTimeLbl")
         self.showTimeLabel.setText(str(self.counter_))
         self.showTimeLabel.hide()
-        self.showTimeLabel.setStyleSheet("background-color: rgba(255, 255, 255, 0);")
+        self.showTimeLabel.setStyleSheet("color: rgba(255, 255, 255, 255);")
 
         # -----------------------------------------------------
 
@@ -139,8 +141,9 @@ class Ui_MainWindow(object):
             print("Found folders.config, will load images from there")
             with open("folders.config") as f:
                 content = f.readlines()
-            self.dir_ = content[0]
-            if self.dir_ == None:
+            if len(content) > 0:
+                self.dir_ = content[0]
+            else:            
                 self.dir_ = "C:/"
             exists = True
             self.imgList_ = [
@@ -231,6 +234,28 @@ class Ui_MainWindow(object):
         height, width, _ = cvImg.shape
         cvImg = cv2.cvtColor(cvImg, cv2.COLOR_RGBA2BGR)
         bytesPerLine = 3 * width
+
+        aspect = float(height)/float(width)
+        resh = 0
+        resw = 0
+
+        resize = False
+        if height > max_res[1]:
+            resh = max_res[1]
+            resw = int(resh/aspect)  
+            resized = True          
+        if width >  max_res[0]:
+            resw = max_res[0]
+            resh = int(resw*aspect)
+            resize= True
+        
+        if resize:
+            cvImg = cv2.resize(cvImg, (resw,resh), interpolation = cv2.INTER_CUBIC)            
+            height = resh 
+            width = resw  
+            bytesPerLine = 3 * width             
+            resize = False
+
         qImg = QImage(
             cvImg.data, width, height, bytesPerLine, QtGui.QImage.Format_RGB888
         )
@@ -266,6 +291,8 @@ if __name__ == "__main__":
     import sys
 
     app = QtWidgets.QApplication(sys.argv)
+    app.setStyleSheet(qdarkstyle.load_stylesheet())
+
     MainWindow = QtWidgets.QMainWindow()
     MainWindow.setWindowFlags(
         QtCore.Qt.Window
